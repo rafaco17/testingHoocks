@@ -1,21 +1,30 @@
-import { Tab, Tabs } from "@mui/material"
-import axios from "axios"
-import { useEffect, useState } from "react"
+import axios from "axios";
+import { useEffect, useState } from "react";
+import useFetchAndLoad from "./useFetchAndLoad";
+import { Tab, Tabs } from "@mui/material";
+
+const loadAbort = () => {
+    const controller = new AbortController();
+    return controller;
+}
 
 const getGoku = () => {
-    return axios.get("https://dragonball-api.com/api/characters/1");
+    const controller = loadAbort();
+    return { call: axios.get("https://dragonball-api.com/api/characters/1", { signal: controller.signal }), controller }; 
 }
 
 const getVegeta = () => {
-    return axios.get("https://dragonball-api.com/api/characters/2");
+    const controller = loadAbort();
+    return { call: axios.get("https://dragonball-api.com/api/characters/2", {signal: controller.signal}), controller };
 }
 
 const Component1 = () => {
+    const { loading, callEndpoint} = useFetchAndLoad(); 
     const [goku, setGoku] = useState(null);
 
     const getApiData = async () => {
         try {
-            const result = await getGoku();
+            const result = await callEndpoint(getGoku());
             adaptGoku(result.data)
         } catch (e) {console.log(e)};
     }
@@ -28,15 +37,16 @@ const Component1 = () => {
         getApiData()
     }, [])
 
-    return <div style={{ color: '#00f' }}>{goku}</div>
+    return <div style={{ color: '#00f' }}>{loading ? 'LOADING' : goku}</div>
 }
 
 const Component2 = () => {
+    const { loading , callEndpoint } = useFetchAndLoad();
     const [vegeta, setVegeta] = useState(null);
 
     const getApiData = async () => {
         try {
-            const result = await getVegeta();
+            const result = await callEndpoint(getVegeta());
             adaptVegeta(result.data)
         } catch (e) {console.log(e)}
     }
@@ -49,11 +59,10 @@ const Component2 = () => {
         getApiData()
     }, [])
 
-    return <div style={{ color: '#f00' }}>{vegeta}</div>
+    return <div style={{ color: '#f00' }}>{loading ? 'LOADING' : vegeta}</div>
 }
 
-
-const DashBoard = () => {
+const DashBoardUpdate = () => {
     const [value, setValue] = useState(0);
     
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -76,4 +85,4 @@ const DashBoard = () => {
     </div>)
 }
 
-export default DashBoard;
+export default DashBoardUpdate;
